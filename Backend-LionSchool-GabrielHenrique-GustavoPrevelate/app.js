@@ -48,66 +48,42 @@ app.use((request, response, next) => {
 
 //EndPoints
 
-// EndPoint: retorna uma lista com todos os cursos disponiveis na escola 
-app.get("/v1/lion-school/cursos", cors(), async function (request, response, next) {
-
-    // Importação modulo pegar todos os cursos da escola
-    const cursos = require("./modulo/js_TodosCursos/get-TodosCursos.js");
-
-    // json
-    let cursosEscolaJSON = {};
-
-    // Seleção de cursos da escola
-    let cursosEscola = cursos.getTodosCursosEscola();
-
-    if (cursosEscola) {
-
-      cursosEscolaJSON.cursos = cursosEscola;
-
-      response.json(cursosEscolaJSON);
-      response.status(200);
-    } else {
-      response.status(500);
-    }
-  }
-);
-
 // EndPoint: retorna todos os alunos pela matricula
 app.get("/v1/lion-school/alunos-matricula", cors(), async function (request, response, next) {
 
-    // Importação modulo pegar todas as disciplinas de um aluno pela matricula do aluno
-    const alunos = require("./modulo/JS_alunosMatriculadosEDisciplinas/get-disciplinasAlunosMatricula.js");
+  // Importação modulo pegar todas as disciplinas de um aluno pela matricula do aluno
+  const alunos = require("./modulo/JS_alunosMatriculadosEDisciplinas/get-disciplinasAlunosMatricula.js");
 
-    //  Request matricula do aluno
-    let numeroMatriculaAluno = request.query.matricula;
+  //  Request matricula do aluno
+  let numeroMatriculaAluno = request.query.matricula;
 
-    // Status do código
-    let statusCode;
+  // Status do código
+  let statusCode;
 
-    // json
-    let dadosAluno = {};
-    let aluno;
+  // json
+  let dadosAluno = {};
+  let aluno;
 
-    // Validações
-    if (numeroMatriculaAluno == undefined || numeroMatriculaAluno == "" || isNaN(numeroMatriculaAluno)) {
+  // Validações
+  if (numeroMatriculaAluno == undefined || numeroMatriculaAluno == "" || isNaN(numeroMatriculaAluno)) {
 
-      statusCode = 400;
+    statusCode = 400;
 
-      dadosAluno.message = "O Número da matrícula está vazio ou não é um número. Por favor preencha o número da matrícula corretamente";
+    dadosAluno.message = "O Número da matrícula está vazio ou não é um número. Por favor preencha o número da matrícula corretamente";
+  } else {
+    aluno = alunos.getAlunoMatricula(numeroMatriculaAluno);
+    if (aluno) {
+      dadosAluno.aluno = aluno;
+      statusCode = 200;
     } else {
-      aluno = alunos.getAlunoMatricula(numeroMatriculaAluno);
-      if (aluno) {
-        dadosAluno.aluno = aluno;
-        statusCode = 200;
-      } else {
-        statusCode = 404;
-      }
+      statusCode = 404;
     }
-
-    // response status e dados do(a) aluno(a)
-    response.status(statusCode);
-    response.json(dadosAluno);
   }
+
+  // response status e dados do(a) aluno(a)
+  response.status(statusCode);
+  response.json(dadosAluno);
+}
 );
 
 // EndPoint: retorna todos os alunos matriculados em um curso especifico
@@ -280,43 +256,67 @@ app.get("/v1/lion-school/alunos", cors(), async function (request, response, nex
 // EndPoint: retorna todas as informações das disciplinas de um aluno com base na matricula
 app.get("/v1/lion-school/alunos-disciplinas", cors(), async function (request, response, next) {
 
-    //Importação do modulo que pega as disciplinas de um aluno especifico com base na matricula do mesmo 
-    const alunosFiltradosMatricula = require("./modulo/JS_alunosMatriculadosEDisciplinas/get-disciplinasAlunosMatricula.js");
+  //Importação do modulo que pega as disciplinas de um aluno especifico com base na matricula do mesmo 
+  const alunosFiltradosMatricula = require("./modulo/JS_alunosMatriculadosEDisciplinas/get-disciplinasAlunosMatricula.js");
 
-    //Request da matricula do aluno 
-    let numeroMatriculaAluno = request.query.matricula;
+  //Request da matricula do aluno 
+  let numeroMatriculaAluno = request.query.matricula;
 
-    // Status do código
-    let statusCode;
+  // Status do código
+  let statusCode;
 
-    // json
-    let dadosGeraisAluno = {};
-    let alunoFiltrado;
+  // json
+  let dadosGeraisAluno = {};
+  let alunoFiltrado;
 
-    // Validações
-    if (numeroMatriculaAluno == undefined || numeroMatriculaAluno == "" || isNaN(numeroMatriculaAluno)) {
+  // Validações
+  if (numeroMatriculaAluno == undefined || numeroMatriculaAluno == "" || isNaN(numeroMatriculaAluno)) {
 
-      statusCode = 400;
+    statusCode = 400;
 
-      dadosGeraisAluno.message = "O número da matrícula do(a) aluno(a) está vazio ou não é um número. Por favor preencha o número da matrícula corretamente";
+    dadosGeraisAluno.message = "O número da matrícula do(a) aluno(a) está vazio ou não é um número. Por favor preencha o número da matrícula corretamente";
+  } else {
+
+    alunoFiltrado = alunosFiltradosMatricula.getDisciplinasAluno(numeroMatriculaAluno);
+
+    if (alunoFiltrado) {
+
+      dadosGeraisAluno.disciplinas = alunoFiltrado;
+
+      statusCode = 200;
     } else {
-
-      alunoFiltrado = alunosFiltradosMatricula.getDisciplinasAluno(numeroMatriculaAluno);
-
-      if (alunoFiltrado) {
-
-        dadosGeraisAluno.disciplinas = alunoFiltrado;
-
-        statusCode = 200;
-      } else {
-        statusCode = 404;
-      }
+      statusCode = 404;
     }
-
-    // response status e dados do(a) aluno(a)
-    response.status(statusCode);
-    response.json(dadosGeraisAluno);
   }
+
+  // response status e dados do(a) aluno(a)
+  response.status(statusCode);
+  response.json(dadosGeraisAluno);
+}
+);
+
+// EndPoint: retorna uma lista com todos os cursos disponiveis na escola 
+app.get("/v1/lion-school/cursos", cors(), async function (request, response, next) {
+
+  // Importação modulo pegar todos os cursos da escola
+  const cursos = require("./modulo/js_TodosCursos/get-TodosCursos.js");
+
+  // json
+  let cursosEscolaJSON = {};
+
+  // Seleção de cursos da escola
+  let cursosEscola = cursos.getTodosCursosEscola();
+
+  if (cursosEscola) {
+
+    cursosEscolaJSON.cursos = cursosEscola;
+
+    response.json(cursosEscolaJSON);
+    response.status(200);
+  } else {
+    response.status(500);
+  }
+}
 );
 
 //Permite carregar os endpoint criados e aguarda as requições
